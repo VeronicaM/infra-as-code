@@ -1,0 +1,55 @@
+Description: >
+
+  Cloudformation script to spin up resources automatically based on a Two Availability Zones Architecture 
+  to provide high-availability for an S3 Stored static Webapp
+  Contains two private subnets with two servers located in each and managed through an auto-scaling group.
+  The servers are built on Ubuntu 18 Amazon Machine Images with vCPUs with least 4GB of RAM. 
+  The servers allow all outbound traffic. The inbound traffic is allowed only on port 80 to communicate with a LoadBalancer. 
+  The Load Balancer is located in a public subnet and allows all inbound traffic on port 80. 
+  Outbound, it will only be using port 80 to reach the internal servers.
+  The Load Balancer has a health check on port 80.
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+
+  ImageId:
+    Description: "The Ubuntu 18 Machine Image used to spin up the servers."
+    Type: String
+    Default: ami-07ebfd5b3428b6f4d
+
+  InstanceType:
+    Description: EC2 Server instance type
+    Type: String
+    Default: t3.medium
+    ConstraintDescription: Must have at least 4GB of Memory
+
+Resources:
+  ProfileWithRolesForOurApp:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - UdacityS3ReadOnlyEC2
+
+  WebAppLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update -y
+          apt-get install unzip awscli -y
+          apt-get install apache2 -y
+          systemctl start apache2.service
+          cd /var/www/html
+          aws s3 cp s3://udacity-demo-1/udacity.zip .
+          unzip -o udacity.zip
+
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref ProfileWithRolesForApp
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdk"
+          Ebs:
+            VolumeSize: "10"
