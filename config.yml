@@ -1,11 +1,12 @@
+---
 Description: >
 
-  Cloudformation script to spin up resources automatically based on a Two Availability Zones Architecture 
+  Cloudformation script to spin up resources automatically based on a Two Availability Zones Architecture
   to provide high-availability for an S3 Stored static Webapp
   Contains two private subnets with two servers located in each and managed through an auto-scaling group.
-  The servers are built on Ubuntu 18 Amazon Machine Images with vCPUs with least 4GB of RAM. 
-  The servers allow all outbound traffic. The inbound traffic is allowed only on port 80 to communicate with a LoadBalancer. 
-  The Load Balancer is located in a public subnet and allows all inbound traffic on port 80. 
+  The servers are built on Ubuntu 18 Amazon Machine Images with vCPUs with least 4GB of RAM.
+  The servers allow all outbound traffic. The inbound traffic is allowed only on port 80 to communicate with a LoadBalancer.
+  The Load Balancer is located in a public subnet and allows all inbound traffic on port 80.
   Outbound, it will only be using port 80 to reach the internal servers.
   The Load Balancer has a health check on port 80.
 
@@ -24,6 +25,10 @@ Parameters:
     Type: String
     Default: t3.medium
     ConstraintDescription: Must have at least 4GB of Memory
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.0.0.0/16
 
 Resources:
   ProfileWithRolesForOurApp:
@@ -31,7 +36,15 @@ Resources:
     Properties:
       Roles:
         - UdacityS3ReadOnlyEC2
-
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+          
   WebAppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
@@ -53,3 +66,10 @@ Resources:
         - DeviceName: "/dev/sdk"
           Ebs:
             VolumeSize: "10"
+
+Outputs:
+  VPC: 
+    Description: A reference to the created VPC
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${EnvironmentName}-VPCID
