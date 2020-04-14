@@ -5,7 +5,7 @@
 	},
 	{
 		"ParameterKey": "ImageId",
-		"ParameterValue": "ami-07ebfd5b3428b6f4d"
+		"ParameterValue": "ami-0d1cd67c26f5fca19"
 	},
 	{
 		"ParameterKey": "InstanceType",

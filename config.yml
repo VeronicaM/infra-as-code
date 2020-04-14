@@ -18,7 +18,7 @@ Parameters:
   ImageId:
     Description: "The Ubuntu 18 Machine Image used to spin up the servers."
     Type: String
-    Default: ami-07ebfd5b3428b6f4d
+    Default: ami-0d1cd67c26f5fca19
 
   InstanceType:
     Description: EC2 Server instance type
