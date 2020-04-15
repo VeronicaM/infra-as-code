@@ -1,7 +1,7 @@
 ---
 Description: >
 
-  Cloudformation script to spin up resources automatically based on a Two Availability Zones Architecture
+  Cloudformation script to spin up network resources automatically based on a Two Availability Zones Architecture
   to provide high-availability for an S3 Stored static Webapp
   Contains two private subnets with two servers located in each and managed through an auto-scaling group.
   The servers are built on Ubuntu 18 Amazon Machine Images with vCPUs with least 4GB of RAM.
