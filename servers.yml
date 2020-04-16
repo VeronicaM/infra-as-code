@@ -28,6 +28,12 @@ Parameters:
     ConstraintDescription: Must have at least 4GB of Memory
 
 Resources:
+  ProfileWithRolesForApp:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - UdacityS3ReadOnlyEC2
+
   LBSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
