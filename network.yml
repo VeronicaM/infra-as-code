@@ -3,34 +3,28 @@ Description: >
 
   Cloudformation script to spin up network resources automatically based on a Two Availability Zones Architecture
   to provide high-availability for an S3 Stored static Webapp
-  Contains two private subnets with two servers located in each and managed through an auto-scaling group.
+  Contains 
+    - 2 public networks 
+    - 2 private networks
+    - 2 Elastic IPs each associated with 1 NAT that provides Internet access to the private networks 
+    - 1 Internet Gateway
+    - 1 Public RouteTable 
+    - 1 Private Route Table 
+    - 1 Public Routes and RouteTableAssociation for the public subnet
+    - 1 Public Routes and RouteTableAssociation for the private subnet
+
   The servers are built on Ubuntu 18 Amazon Machine Images with vCPUs with least 4GB of RAM.
-  The servers allow all outbound traffic. The inbound traffic is allowed only on port 80 to communicate with a LoadBalancer.
-  The Load Balancer is located in a public subnet and allows all inbound traffic on port 80.
-  Outbound, it will only be using port 80 to reach the internal servers.
-  The Load Balancer has a health check on port 80.
 
 Parameters:
   EnvironmentName:
     Description: An environment name that will be prefixed to resource names
     Type: String
 
-  ImageId:
-    Description: "The Ubuntu 18 Machine Image used to spin up the servers."
-    Type: String
-    Default: ami-0d1cd67c26f5fca19
-
-  InstanceType:
-    Description: EC2 Server instance type
-    Type: String
-    Default: t3.medium
-    ConstraintDescription: Must have at least 4GB of Memory
-
   VpcCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
     Default: 10.0.0.0/16
-  
+
   PublicSubnet1CIDR:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
     Type: String
@@ -65,68 +59,68 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
-    
+
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
-          
+
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
-  PublicSubnet1: 
+  PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      AvailabilityZone: !Select [0, !GetAZs ""]
       CidrBlock: !Ref PublicSubnet1CIDR
       MapPublicIpOnLaunch: true
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
 
-  PublicSubnet2: 
+  PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      AvailabilityZone: !Select [1, !GetAZs ""]
       CidrBlock: !Ref PublicSubnet2CIDR
       MapPublicIpOnLaunch: true
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
 
-  PrivateSubnet1: 
+  PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      AvailabilityZone: !Select [0, !GetAZs ""]
       CidrBlock: !Ref PrivateSubnet1CIDR
       MapPublicIpOnLaunch: false
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
 
-  PrivateSubnet2: 
+  PrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      AvailabilityZone: !Select [1, !GetAZs ""]
       CidrBlock: !Ref PrivateSubnet2CIDR
       MapPublicIpOnLaunch: false
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
 
   NatGateway1EIP:
     Type: AWS::EC2::EIP
     DependsOn: InternetGatewayAttachment
-    Properties: 
+    Properties:
       Domain: vpc
 
   NatGateway2EIP:
@@ -135,13 +129,13 @@ Resources:
     Properties:
       Domain: vpc
 
-  NatGateway1: 
+  NatGateway1:
     Type: AWS::EC2::NatGateway
-    Properties: 
+    Properties:
       AllocationId: !GetAtt NatGateway1EIP.AllocationId
       SubnetId: !Ref PublicSubnet1
 
-  NatGateway2: 
+  NatGateway2:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGateway2EIP.AllocationId
@@ -149,16 +143,16 @@ Resources:
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
-    Properties: 
+    Properties:
       VpcId: !Ref VPC
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${EnvironmentName} Public Routes
 
-  DefaultPublicRoute: 
+  DefaultPublicRoute:
     Type: AWS::EC2::Route
     DependsOn: InternetGatewayAttachment
-    Properties: 
+    Properties:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
@@ -174,13 +168,13 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
-    
+
   PrivateRouteTable1:
     Type: AWS::EC2::RouteTable
-    Properties: 
+    Properties:
       VpcId: !Ref VPC
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${EnvironmentName} Private Routes (AZ1)
 
   DefaultPrivateRoute1:
@@ -198,10 +192,10 @@ Resources:
 
   PrivateRouteTable2:
     Type: AWS::EC2::RouteTable
-    Properties: 
+    Properties:
       VpcId: !Ref VPC
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${EnvironmentName} Private Routes (AZ2)
 
   DefaultPrivateRoute2:
@@ -217,35 +211,13 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable2
       SubnetId: !Ref PrivateSubnet2
 
-  WebAppLaunchConfig:
-    Type: AWS::AutoScaling::LaunchConfiguration
-    Properties:
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          apt-get update -y
-          apt-get install unzip awscli -y
-          apt-get install apache2 -y
-          systemctl start apache2.service
-          cd /var/www/html
-          aws s3 cp s3://udacity-demo-1/udacity.zip .
-          unzip -o udacity.zip
-
-      ImageId: !Ref ImageId
-      InstanceType: !Ref InstanceType
-      IamInstanceProfile: !Ref ProfileWithRolesForApp
-      BlockDeviceMappings:
-        - DeviceName: "/dev/sdk"
-          Ebs:
-            VolumeSize: "10"
-
 Outputs:
   VPC:
     Description: A reference to the created VPC
     Value: !Ref VPC
     Export:
       Name: !Sub ${EnvironmentName}-VPCID
-  
+
   VPCPublicRouteTable:
     Description: Public Routing
     Value: !Ref PublicRouteTable
@@ -266,13 +238,13 @@ Outputs:
 
   PublicSubnets:
     Description: A list of the public subnets
-    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]]
+    Value: !Join [",", [!Ref PublicSubnet1, !Ref PublicSubnet2]]
     Export:
       Name: !Sub ${EnvironmentName}-PUB-NETS
 
   PrivateSubnets:
     Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+    Value: !Join [",", [!Ref PrivateSubnet1, !Ref PrivateSubnet2]]
     Export:
       Name: !Sub ${EnvironmentName}-PRIV-NETS
 
@@ -282,7 +254,7 @@ Outputs:
     Export:
       Name: !Sub ${EnvironmentName}-PUB1-SN
 
-  PublicSubnet2: 
+  PublicSubnet2:
     Description: A reference to the public subnet in the 2nd Availability Zone
     Value: !Ref PublicSubnet2
     Export:
@@ -294,7 +266,7 @@ Outputs:
     Export:
       Name: !Sub ${EnvironmentName}-PRI1-SN
 
-  PrivateSubnet2: 
+  PrivateSubnet2:
     Description: A reference to the private subnet in the 2nd Availability Zone
     Value: !Ref PrivateSubnet2
     Export:
