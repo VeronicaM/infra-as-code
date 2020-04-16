@@ -64,4 +64,4 @@ Once your are happy with the changes to the template file run the following comm
 
 Please take notice of the charges a configuration of this size would bring and adjust it to your own application needs See https://aws.amazon.com/ec2/pricing/on-demand/ for more details on costs. 
 
-Other Amazon resources might bring additional costs as well, for example the Load Balancer Health check and the Elastic IPs. Please make sure you are aware of all the involved costs before creating all these resources. Also if you do not need the resources running, make sure to delete your stack from the CloudFormation section. You can always easily bring it back by  runing the create-stack commands again. 
+Other Amazon resources might bring additional costs as well, for example the Load Balancer Health check and the Elastic IPs. Please make sure you are aware of all the involved costs before creating all these resources. Also if you do not need the resources running, make sure to delete both network and servers stacks from the CloudFormation section of your AWS Account Console. You can always easily bring them back by  runing the create-stack commands again. 
