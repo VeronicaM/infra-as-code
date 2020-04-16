@@ -10,7 +10,9 @@ This Project contains the AWS CloudFormation scripts to spin up network and serv
 
 To create the network resources clone this repo and run the following command in the root folder of this repo:
 
-./create-stack.sh your-network-stack-name network.yml network-params.json
+```bash
+  ./create-stack.sh your-network-stack-name network.yml network-params.json
+```
 
 The following network resources will be created: 
 
@@ -27,7 +29,9 @@ The following network resources will be created:
 
 To create the server resources run the following command in the root folder of this repo: 
 
-./create-stack.sh your-servers-stack-name servers.yml servers-params.json
+```bash
+  ./create-stack.sh your-servers-stack-name servers.yml servers-params.json
+```
 
 The following server resources will be created:
 
@@ -51,7 +55,13 @@ To access your app find the http URL of the Load Balancer in the outputs section
 
 # Customize for your own needs
 
-To customize this to your own needs update the `WebAppLaunchConfig` resource in the `servers.yml` file. 
+To customize this to your own needs change the `WebAppLaunchConfig` resource in the `servers.yml` file. 
+Once your are happy with the changes to the template file run the following command in the root folder of this repo:
+
+```bash
+  ./update-stack your-stack-name your-stack-template.yml your-stack-params.json
+```
+
 Please take notice of the charges a configuration of this size would bring and adjust it to your own application needs See https://aws.amazon.com/ec2/pricing/on-demand/ for more details on costs. 
 
-Other Amazon resources might bring additional costs as well, for example the Load Balancer Health check. Please make sure you are aware of all the involved costs before creating all these resources.
+Other Amazon resources might bring additional costs as well, for example the Load Balancer Health check and the Elastic IPs. Please make sure you are aware of all the involved costs before creating all these resources. Also if you do not need the resources running, make sure to delete your stack from the CloudFormation section. You can always easily bring it back by using runing the create-stack commands again. 
